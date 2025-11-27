@@ -1,2 +1,2 @@
 # StockTracker
-Pinged once a day and Sends a notification to my phone information about my current stock holdings
+Delivers daily portfolio performance updates straight to my phone at both the opening and closing of the US stock market. Each weekday it sends a notification to my phone showing my total unrealised return, the highest mover of the day, and the overall value of my portfolio. The hosted web app lets me log trades (Password Protected) and view holdings instantly from any device. Powered by PythonAnywhere (hosting), CronJobs (scheduling), and Pushover (notifications).
