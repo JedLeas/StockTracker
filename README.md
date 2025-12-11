@@ -87,9 +87,25 @@ For a production environment, it is highly recommended to use HTTPS. You can use
     ```
     And if you havented added Hypercorn to path do the command below
     ```bash
-    python -m hypercorn --certfile cert.pem --keyfile key.pem --bind "0.0.0.0:8000" wsgi:app
+    python -m hypercorn --cert-file cert.pem --keyfile key.pem --bind "0.0.0.0:8000" wsgi:app
     ```
     The application will be available at `https://localhost:8000`.
+
+### Production (HTTPS) with Certbot
+Use this if you own a domain name (e.g., `example.com`) and want a trusted certificate.
+
+1.  **Port Forwarding:** Ensure **Port 80** is forwarded on your router to this machine. Certbot needs Port 80 to verify you own the domain.
+2.  **Install Certbot:** Download and install Certbot for Windows from [certbot.eff.org](https://certbot.eff.org/instructions?ws=other&os=windows).
+3.  **Generate Certificate:** Open PowerShell as Administrator and run:
+    ```bash
+    certbot certonly --standalone
+    ```
+    Follow the prompts. Certbot will temporarily spin up a server on Port 80 to verify your domain.
+4.  **Run Hypercorn:** Once successful, point Hypercorn to the generated files (usually in `C:\Certbot\live\yourdomain.com\`):
+    ```bash
+    hypercorn --cert-file "C:\Certbot\live\yourdomain.com\fullchain.pem" --key-file "C:\Certbot\live\yourdomain.com\privkey.pem" --bind "0.0.0.0:8000" wsgi:app
+    ```
+    *Note: You must keep Port 80 open/forwarded so Certbot can automatically renew the certificate every 60 days.*
 
 ### Alternative Production Servers (HTTP)
 If you are running behind a reverse proxy that handles HTTPS for you, you can use Waitress or Gunicorn.
