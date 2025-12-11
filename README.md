@@ -1,11 +1,130 @@
 # StockTracker
-Delivers daily portfolio performance updates straight to my phone at both the opening and closing of the US stock market. Each weekday it sends a notification to my phone showing my total unrealised return, the highest mover of the day, and the overall value of my portfolio. The hosted web app lets me log trades (Password Protected) and view holdings instantly from any device. Powered by PythonAnywhere (hosting), CronJobs (scheduling), and Pushover (notifications).
 
-<div style="overflow-x: auto; white-space: nowrap; padding: 10px;">
+StockTracker is a lightweight, self-hosted web application for tracking your stock portfolio performance. Built with Python and Flask, it provides real-time insights into your holdings, transaction history, and overall wealth growth, along with push notifications for market updates.
 
-  <img src="https://jedleas.github.io/images/project2-2.png" width="400" style="display: inline-block; margin-right: 10px;" />
-  <img src="https://jedleas.github.io/images/project2-3.png" width="400" style="display: inline-block; margin-right: 10px;" />
-  <img src="https://jedleas.github.io/images/project2-4.png" width="400" style="display: inline-block; margin-right: 10px;" />
-  <img src="https://jedleas.github.io/images/project2-5.png" width="400" style="display: inline-block;" />
+## Features
 
-</div>
+*   **Portfolio Dashboard:** View total portfolio value, unrealized P/L, daily changes, and lifetime growth.
+*   **Asset Allocation:** Visual breakdown of your portfolio using interactive charts.
+*   **Transaction Management:** Buy and sell stocks to track your history and realized gains.
+*   **Real-time Data:** Fetches stock prices and news using Yahoo Finance data.
+*   **User System:** Secure registration and login with password hashing.
+*   **Notifications:** Integration with [Pushover](https://pushover.net/) for market alerts (Open, Close, Hourly, etc.).
+*   **Data Export:** Export your holdings and transaction history to CSV.
+*   **Privacy Focused:** All data is stored locally in JSON files; no external database required.
+
+## Prerequisites
+
+*   Python 3.8 or higher
+*   pip (Python package manager)
+
+## Installation
+
+1.  **Clone the repository:**
+    ```bash
+    git clone <repository-url>
+    cd StockTracker
+    ```
+
+2.  **Create a virtual environment (recommended):**
+    ```bash
+    python -m venv venv
+    # Windows
+    venv\Scripts\activate
+    # macOS/Linux
+    source venv/bin/activate
+    ```
+
+3.  **Install dependencies:**
+    ```bash
+    pip install -r requirements.txt
+    ```
+
+## Configuration
+
+1.  **Environment Variables:**
+    Create a `.env` file in the root directory of the project. You can copy the structure below:
+
+    ```ini
+    # .env
+    SECRET_KEY=your_secure_random_string_here
+    CRON_SECRET=your_custom_cron_secret_string
+    PUSHOVER_APP_TOKEN=your_pushover_app_token_here
+    ```
+
+    *   `SECRET_KEY`: Used by Flask to sign session cookies. Make this long and random.
+    *   `CRON_SECRET`: A password you define to protect the automated notification endpoint.
+    *   `PUSHOVER_APP_TOKEN`: (Optional) Your application token from Pushover if you want notifications.
+
+2.  **Data Directory:**
+    The application will automatically create a `data/` folder to store user and portfolio data in JSON format.
+
+## Running the Application
+
+### Development
+To run the server locally for testing:
+
+```bash
+python app.py
+```
+The app will be accessible at `http://localhost:5000`.
+
+### Production
+For a production environment, use a WSGI server. The `wsgi.py` file serves as the entry point.
+
+**Windows (Waitress):**
+```bash
+waitress-serve --host 0.0.0.0 --port 8000 wsgi:app
+```
+
+**Linux/macOS (Gunicorn):**
+```bash
+gunicorn -w 4 -b 0.0.0.0:8000 wsgi:app
+```
+
+## Setting up Notifications (Cron Job)
+
+To receive periodic portfolio updates via Pushover, you need to trigger the `/cron/trigger` endpoint.
+
+**Endpoint:** `GET /cron/trigger?secret=<YOUR_CRON_SECRET>`
+
+### Linux/Mac (Crontab)
+To trigger the job every 30 minutes:
+
+1.  Open your crontab:
+    ```bash
+    crontab -e
+    ```
+
+2.  Add the following line (replace with your actual domain and secret):
+    ```cron
+    */30 * * * * curl "http://your-domain.com/cron/trigger?secret=your_custom_cron_secret_string"
+    ```
+    
+### Windows (Task Scheduler)
+You can use Windows Task Scheduler to make a periodic web request. A simple way is to use PowerShell.
+
+1.  Open Task Scheduler.
+2.  Create a new Basic Task.
+3.  Set the trigger to run every 30 minutes.
+4.  For the action, choose "Start a program" and enter `powershell`.
+5.  In "Add arguments", paste the following (replace with your URL and secret):
+    ```powershell
+    -Command "Invoke-WebRequest -Uri http://localhost:8000/cron/trigger?secret=your_custom_cron_secret_string"
+    ```
+
+## Security Notes
+
+*   **Secrets:** Never commit your `.env` file to version control. It is already added to `.gitignore`.
+*   **Port Forwarding:** If you are exposing this to the internet via port forwarding, ensure you have set strong values for `SECRET_KEY` and `CRON_SECRET`.
+*   **HTTPS:** It is highly recommended to run this behind a reverse proxy (like Nginx) with SSL/HTTPS enabled to protect your login credentials.
+
+## Project Structure
+
+*   `app.py`: Main application entry point.
+*   `wsgi.py`: WSGI entry point for Gunicorn.
+*   `routes.py`: URL route definitions and logic.
+*   `models.py`: Data handling (JSON read/write).
+*   `utils.py`: Helper functions for stock data fetching and notifications.
+*   `config.py`: Configuration loading.
+*   `templates_html.py`: HTML templates stored as Python strings.
