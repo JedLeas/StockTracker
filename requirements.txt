@@ -4,5 +4,6 @@ pytz
 Flask-Limiter
 gunicorn
 waitress
+hypercorn
 werkzeug>=2.3.0
 python-dotenv

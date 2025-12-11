@@ -17,6 +17,7 @@ StockTracker is a lightweight, self-hosted web application for tracking your sto
 
 *   Python 3.8 or higher
 *   pip (Python package manager)
+*   OpenSSL (for generating a self-signed certificate for HTTPS)
 
 ## Installation
 
@@ -61,16 +62,33 @@ StockTracker is a lightweight, self-hosted web application for tracking your sto
 
 ## Running the Application
 
-### Development
-To run the server locally for testing:
+### Development (HTTP)
+To run the server locally for testing over HTTP:
 
 ```bash
 python app.py
 ```
 The app will be accessible at `http://localhost:5000`.
 
-### Production
-For a production environment, use a WSGI server. The `wsgi.py` file serves as the entry point.
+### Production (HTTPS)
+For a production environment, it is highly recommended to use HTTPS. You can use **Hypercorn** to serve the application over HTTPS.
+
+1.  **Generate a Self-Signed Certificate:**
+    First, create a self-signed SSL certificate using OpenSSL. This will create `cert.pem` and `key.pem` files.
+    ```bash
+    openssl req -x509 -newkey rsa:4096 -nodes -out cert.pem -keyout key.pem -days 365
+    ```
+    *(Note: Your browser will warn you that this certificate is not trusted. This is expected for a self-signed certificate.)*
+
+2.  **Run the Hypercorn Server:**
+    Use the following command to start the server with your new certificate.
+    ```bash
+    hypercorn --cert-file cert.pem --key-file key.pem --bind "0.0.0.0:8000" wsgi:app
+    ```
+    The application will be available at `https://localhost:8000`.
+
+### Alternative Production Servers (HTTP)
+If you are running behind a reverse proxy that handles HTTPS for you, you can use Waitress or Gunicorn.
 
 **Windows (Waitress):**
 ```bash
@@ -98,7 +116,7 @@ To trigger the job every 30 minutes:
 
 2.  Add the following line (replace with your actual domain and secret):
     ```cron
-    */30 * * * * curl "http://your-domain.com/cron/trigger?secret=your_custom_cron_secret_string"
+    */30 * * * * curl "https://your-domain.com/cron/trigger?secret=your_custom_cron_secret_string"
     ```
     
 ### Windows (Task Scheduler)
@@ -110,14 +128,14 @@ You can use Windows Task Scheduler to make a periodic web request. A simple way 
 4.  For the action, choose "Start a program" and enter `powershell`.
 5.  In "Add arguments", paste the following (replace with your URL and secret):
     ```powershell
-    -Command "Invoke-WebRequest -Uri http://localhost:8000/cron/trigger?secret=your_custom_cron_secret_string"
+    -Command "Invoke-WebRequest -Uri https://localhost:8000/cron/trigger?secret=your_custom_cron_secret_string"
     ```
 
 ## Security Notes
 
-*   **Secrets:** Never commit your `.env` file to version control. It is already added to `.gitignore`.
+*   **Secrets:** Never commit your `.env` or `*.pem` files to version control. They are already added to `.gitignore`.
 *   **Port Forwarding:** If you are exposing this to the internet via port forwarding, ensure you have set strong values for `SECRET_KEY` and `CRON_SECRET`.
-*   **HTTPS:** It is highly recommended to run this behind a reverse proxy (like Nginx) with SSL/HTTPS enabled to protect your login credentials.
+*   **HTTPS:** For a real production deployment, consider using a certificate from a trusted authority like [Let's Encrypt](https://letsencrypt.org/) instead of a self-signed one.
 
 ## Project Structure
 

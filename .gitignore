@@ -89,3 +89,6 @@ venv.bak/
 
 # Data files
 data/
+
+# SSL Certificates
+*.pem
