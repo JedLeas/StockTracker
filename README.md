@@ -83,7 +83,11 @@ For a production environment, it is highly recommended to use HTTPS. You can use
 2.  **Run the Hypercorn Server:**
     Use the following command to start the server with your new certificate.
     ```bash
-    hypercorn --cert-file cert.pem --key-file key.pem --bind "0.0.0.0:8000" wsgi:app
+    hypercorn --certfile cert.pem --keyfile key.pem --bind "0.0.0.0:8000" wsgi:app
+    ```
+    And if you havented added Hypercorn to path do the command below
+    ```bash
+    python -m hypercorn --certfile cert.pem --keyfile key.pem --bind "0.0.0.0:8000" wsgi:app
     ```
     The application will be available at `https://localhost:8000`.
 
@@ -93,6 +97,10 @@ If you are running behind a reverse proxy that handles HTTPS for you, you can us
 **Windows (Waitress):**
 ```bash
 waitress-serve --host 0.0.0.0 --port 8000 wsgi:app
+```
+And if you havented added Waitress to path do the command below
+```bash
+python -m waitress-serve --host 0.0.0.0 --port 8000 wsgi:app
 ```
 
 **Linux/macOS (Gunicorn):**
@@ -118,6 +126,13 @@ To trigger the job every 30 minutes:
     ```cron
     */30 * * * * curl "https://your-domain.com/cron/trigger?secret=your_custom_cron_secret_string"
     ```
+##CronJobs.org
+You can use cronjobs.org for free to set up a cronjob
+
+1. Sign up
+2. Add a cronjob
+3. set duration to every 30 minutes
+4. set url to "https://your-domain.com/cron/trigger?secret=your_custom_cron_secret_string"
     
 ### Windows (Task Scheduler)
 You can use Windows Task Scheduler to make a periodic web request. A simple way is to use PowerShell.
